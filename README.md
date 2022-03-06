@@ -1,3 +1,6 @@
+About The Project
+Cretaed by Punrawee K.
+
 INTRODUCTION TO PROBLEM
 
 Medical masks are being used for a long time in history. Due to the pandemic situation (Covid 19) we are in the middle of, medical masks are having much more importance day by day. The virus we are trying to avoid from, cannot be reach a human body itself; it can only reach from the eyes and nose or mouth. Medical masks help us in that point.
