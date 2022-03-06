@@ -1,6 +1,3 @@
-# USAGE
-# python train_mask_detector.py --dataset dataset
-
 # import the necessary packages
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
@@ -21,62 +18,59 @@ from sklearn.metrics import classification_report
 from imutils import paths
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
 import os
-
-# construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-d", "--dataset", required=True,
-	help="path to input dataset")
-ap.add_argument("-p", "--plot", type=str, default="plot.png",
-	help="path to output loss/accuracy plot")
-ap.add_argument("-m", "--model", type=str,
-	default="mask_detector.model",
-	help="path to output face mask detector model")
-args = vars(ap.parse_args())
 
 # initialize the initial learning rate, number of epochs to train for,
 # and batch size
+# we applied less learning rate because less learning rate means loss will be calculated properly.
 INIT_LR = 1e-4
 EPOCHS = 20
 BS = 32
 
+DIRECTORY = r"/Users/nidadinc/Desktop/face2/dataset"
+CATEGORIES = ["with_mask", "without_mask"]
+
 # grab the list of images in our dataset directory, then initialize
 # the list of data (i.e., images) and class images
 print("[INFO] loading images...")
-imagePaths = list(paths.list_images(args["dataset"]))
+
 data = []
 labels = []
 
-# loop over the image paths
-for imagePath in imagePaths:
-	# extract the class label from the filename
-	label = imagePath.split(os.path.sep)[-2]
+# withmask and without mask images will append to data array and categories will append to labels array
+for category in CATEGORIES:
+    path = os.path.join(DIRECTORY, category)
+    for img in os.listdir(path):
+    	img_path = os.path.join(path, img)
+    	image = load_img(img_path, target_size=(224, 224)) #all images will be 224 x 224
+    	image = img_to_array(image) #images to array using imagetoarray function
+    	image = preprocess_input(image) # mobileNet used for model so, we used preprocess_input fuction
 
-	# load the input image (224x224) and preprocess it
-	image = load_img(imagePath, target_size=(224, 224))
-	image = img_to_array(image)
-	image = preprocess_input(image)
+    	data.append(image)
+    	labels.append(category) #with_mask and without_mask 
 
-	# update the data and labels lists, respectively
-	data.append(image)
-	labels.append(label)
+# data is numerical values, but labels are alphbetic variables, withmask and withoutmask.
+# We should convert them to numerical values by using LabelBinarizer() method. that comes from the sklearn.Preprocesser model
 
-# convert the data and labels to NumPy arrays
+# perform one-hot encoding on the labels
+lb = LabelBinarizer() 
+labels = lb.fit_transform(labels)
+labels = to_categorical(labels)
+# we converted them into numerical ones (0 , 1 ...)
+
+# we need to convert them
 data = np.array(data, dtype="float32")
 labels = np.array(labels)
 
-# perform one-hot encoding on the labels
-lb = LabelBinarizer()
-labels = lb.fit_transform(labels)
-labels = to_categorical(labels)
-
-# partition the data into training and testing splits using 75% of
-# the data for training and the remaining 25% for testing
+#train & test data 0.2 for testing and 0.8 for training
 (trainX, testX, trainY, testY) = train_test_split(data, labels,
 	test_size=0.20, stratify=labels, random_state=42)
 
+
+
 # construct the training image generator for data augmentation
+# ImageDataGenerator() creates many images from single image 
+# by changing some of the properties like rotating, shifting etc.
 aug = ImageDataGenerator(
 	rotation_range=20,
 	zoom_range=0.15,
@@ -86,19 +80,20 @@ aug = ImageDataGenerator(
 	horizontal_flip=True,
 	fill_mode="nearest")
 
-# load the MobileNetV2 network, ensuring the head FC layer sets are
-# left off
+# load the MobileNetV2 network, ensuring the head FC layer sets are left off
 baseModel = MobileNetV2(weights="imagenet", include_top=False,
-	input_tensor=Input(shape=(224, 224, 3)))
+	input_tensor=Input(shape=(224, 224, 3))) #it means height 224, weight 224, and 3 channels R,G & B
+
 
 # construct the head of the model that will be placed on top of the
 # the base model
+
 headModel = baseModel.output
-headModel = AveragePooling2D(pool_size=(7, 7))(headModel)
-headModel = Flatten(name="flatten")(headModel)
-headModel = Dense(128, activation="relu")(headModel)
-headModel = Dropout(0.5)(headModel)
-headModel = Dense(2, activation="softmax")(headModel)
+headModel = AveragePooling2D(pool_size=(7, 7))(headModel) #creating the pooling 7 by 7
+headModel = Flatten(name="flatten")(headModel) #doing flatten this layers
+headModel = Dense(128, activation="relu")(headModel) # dense layer and relu is non-linear use cases.
+headModel = Dropout(0.5)(headModel) #dropout for avoiding 
+headModel = Dense(2, activation="softmax")(headModel) 
 
 # place the head FC model on top of the base model (this will become
 # the actual model we will train)
@@ -138,7 +133,7 @@ print(classification_report(testY.argmax(axis=1), predIdxs,
 
 # serialize the model to disk
 print("[INFO] saving mask detector model...")
-model.save(args["model"], save_format="h5")
+model.save("mask_detector.model", save_format="h5")
 
 # plot the training loss and accuracy
 N = EPOCHS
@@ -152,4 +147,4 @@ plt.title("Training Loss and Accuracy")
 plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")
 plt.legend(loc="lower left")
-plt.savefig(args["plot"])
+plt.savefig("plot.png")
