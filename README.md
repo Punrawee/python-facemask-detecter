@@ -1,22 +1,42 @@
-# python-facemask-detecter
-## Running the project  
-1. Open terminal. Go into the cloned project directory and type the following command: ``` > python3 train_mask_detector.py --dataset dataset ```  
-2. To detect face masks in an image type the following command:  ``` > python3 detect_mask_image.py --image images/pic1.jpeg ```  
-3.1 To detect face masks in real-time video streams type the following command: ``` > python3 detect_mask_video.py  ``` 
-3.2 To detect face masks in an image on webapp type the following command: ``` > streamlit run app.py  ``` 
+INTRODUCTION TO PROBLEM
 
+Medical masks are being used for a long time in history. Due to the pandemic situation (Covid 19) we are in the middle of, medical masks are having much more importance day by day. The virus we are trying to avoid from, cannot be reach a human body itself; it can only reach from the eyes and nose or mouth. Medical masks help us in that point.
 
-requirement 
-tensorflow>=2.5.0* 
-keras==2.4.3 
-imutils==0.5.4 
-numpy==1.19.5 
-opencv-python==4.5.1.* 
-matplotlib==3.4.1 
-argparse==1.4.0 
-scipy==1.6.2 
-scikit-learn==0.24.1 
-pillow==8.2.0 
-streamlit==0.79.0
+There is a 95% accurate solution to end this pandemic with stopping the whole daily life for a 15 days, however the life must go on, people has to work, firms must reach their goals, manufacturing cannot stop. So, the masks must be used. The main problem with that is, not every human being is aware of the situation and they are not giving enough importance to masks.
 
+Our system that we made is checking human faces to determine if they are using masks or not. It can be replaced as a control mechanism in the enterance of big buildings, hospitals, work places and any place that can be a possibility of a non-controllable crowd. It can be improved with an alarm system which gives a warning message to the security or it can also block the entering system and lock the doors for that person which does not have a mask.
 
+The difficulty with the development is image’s properties (pose of the head, location of the head, mask’s color and type) must be appropriate to check the mask. We fixed the problem with using a large set of data to train our program.
+
+SURVEY
+Mask detection is a new problem that we face recently so, there is not that much different methods to determine if there is a mask in a picture or in a video. The methods to detect the mask can be simply separated as “face detection + edge detection” and “training the program + deep learning”.
+
+We can say that recently face detection algorithms are having much more importance and so, engineers work on that to improve it and to get better results. The main problem they are trying to figure out is to detect even if the environment is complex such as cluttered backgrounds and low quality images. Some of the algorithms that used are still too computationally expensive to be apply for a real time processing. However, this can be fixed with coming improvements in computer hardware technology.
+
+We can analyze methods separated as “feature-based” and “image-based”.
+
+Feature based methods can be used in real-time systems where color and motion is available. The main problem with that is, these methods cannot always provide visual cues to focus attention due to exhaustive multi resolution window scanning cannot always be preferable. In that case, the common approach to fix that problem is “skin color detection”.
+
+Image-based approaches are the most powerful techniques to process gray-scale images. Sung and Poggio and Rowley et al. Developed an algorithm on that topic and that algorithms is still can be used because it is still comparable with recent common algorithms.The high computational cost can be decreased with avoiding multi resolution window scanning with combining these two approaches with using visual clues like skin color when we are trying to find the face.
+
+To conclude, detecting a face is still a hard problem to solve, considering the changes in faces over time like facial hair, glass usage, etc. In the second case which we used to determine if there is a mask or not, we basically followed the steps which are: collect a dataset with and without mask, load the dataset and train the program with selecting which ones have mask and which ones do not, serialize model to disk, detect faces and extract them ROI, apply our model to detect faces and check for a mask and finally show the result.It is much more robust solution because in that case we did not have to deal with the problems like cluttered background sor low quality images, we also did not deal with collecting a dataset to use visual clues about the skin color. To sum up, we did not focus on the face but the mask. The other specific reason that we picked that one is to learn the recent technological approaches to problems when compared to the old ones.
+
+METHOD DESCRIPTION
+Face Mask Detection via Keras/Tensorflow, Python, OpenCV & MobileNet Our method to develop that mask detection can be seperated as “phase1: train mask detector” and “phase 2: apply mask detector”.
+
+DATASET
+For face mask detection using keras/tensorflow, python, OpenCV and mobilenet we have used 3835 images for dataset. All images are extracted from Kaggle datasets and RMFD dataset, Bing Search API. And all images are real. Images from all three sources are equated. The ratio of masked faces to unmasked faces indicates that the data set is balanced.
+
+If our dataset and model require a lot of training, that is, if the model has too many parameters to adjust, then we have to use a larger dataset for training, which is our case.
+
+We needed to divide our dataset into two parts; train dataset & test dataset. And first of all, we have decided to use 60% of dataset to training the model. And other 40% of the dataset to use for testing the model. After that, we have decided to retrain & retest our model by using 80% of the dataset for training the model & 20% for the test. We want to see difference of two training’s accurancy, recall & precision. The dataset has 3835 images of faces. All images collected from following sources: [3] [4]
+
+Kaggle datasets - Rmfd dataset
+Bing search API And each image provides only 1 face. Dataset is balanced & divided into two categories:
+without_mask : 1916 images - with_mask : 1919 images
+EXPERIMENTATION
+First of all, we have used 60% of the dataset to training the model. And we tested the model using 40% of the dataset.. And we archived 0.85 accuracy using mobileNet & max-pooling method. After that, we have used 80% of the dataset for training the model. After training we archieved 0.9909 accurancy using mobileNet & max-pooling method.As a result of training, 99% precision and 99% recall in the segmentation of face detection When we use noisy images, accurancy dropped to 0.8689.
+
+Built With
+Python
+OpenCV
